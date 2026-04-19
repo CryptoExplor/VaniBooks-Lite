@@ -3,7 +3,7 @@
 
 interface Env {
   SUPABASE_URL: string | undefined;
-  SUPABASE_ANON_KEY: string | undefined;
+  SUPABASE_PUBLISHABLE_KEY: string | undefined;
   APP_ENV: string;
   APP_VERSION: string;
 }
@@ -23,7 +23,7 @@ function optionalEnv(key: string): string | undefined {
 
 export const env: Env = {
   SUPABASE_URL: optionalEnv("VITE_SUPABASE_URL"),
-  SUPABASE_ANON_KEY: optionalEnv("VITE_SUPABASE_ANON_KEY"),
+  SUPABASE_PUBLISHABLE_KEY: optionalEnv("VITE_SUPABASE_PUBLISHABLE_KEY"),
   APP_ENV: (import.meta.env.VITE_APP_ENV as string) ?? "development",
   APP_VERSION: (import.meta.env.VITE_APP_VERSION as string) ?? "0.1.0",
 };
