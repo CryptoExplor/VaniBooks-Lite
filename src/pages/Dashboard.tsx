@@ -5,6 +5,7 @@ import { ResultCard } from "../components/ResultCard";
 import { Ledger } from "../components/Ledger";
 import { InvoicePreview } from "../components/InvoicePreview";
 import { SummaryPanel } from "../components/SummaryPanel";
+import { ThinkingConsole, type LoadingStage } from "../components/ThinkingConsole";
 import { callClaude, parseClaudeResponse } from "../services/claude";
 import { detectIntent } from "../services/parser";
 import { rupeesToPaise, calculateGst } from "../services/gst";
@@ -24,13 +25,14 @@ import {
 
 type FeedItem =
   | { id: string; kind: "transaction"; data: Transaction; added: boolean }
-  | { id: string; kind: "invoice"; data: Invoice; added: boolean }
+  | { id: string; kind: "invoice"; data: Invoice; added: boolean; raw?: string }
   | { id: string; kind: "summary"; data: FinancialSummary }
   | { id: string; kind: "error"; message: string };
 
 export function Dashboard() {
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState<LoadingStage>("done");
   const [inputError, setInputError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"chat" | "ledger">("chat");
 
@@ -39,9 +41,12 @@ export function Dashboard() {
   const handleSubmit = async (input: string) => {
     setInputError(null);
     setIsLoading(true);
+    setLoadingStage("routing");
 
     const mode = detectIntent(input);
     logger.info("Intent detected", { data: { mode, input: input.slice(0, 50) } });
+    
+    setLoadingStage("calling");
 
     try {
       let raw: string;
@@ -67,6 +72,8 @@ export function Dashboard() {
       } else {
         raw = await callClaude({ mode, userMessage: input });
       }
+      
+      setLoadingStage("parsing");
 
       if (mode === "analysis") {
         const parsed = parseClaudeResponse<RawAnalysisOutput>(raw);
@@ -107,7 +114,7 @@ export function Dashboard() {
           rawInput: input,
           createdAt: new Date().toISOString(),
         };
-        setFeed((f) => [{ id: uuidv4(), kind: "invoice", data: invoice, added: false }, ...f]);
+        setFeed((f) => [{ id: uuidv4(), kind: "invoice", data: invoice, added: false, raw }, ...f]);
 
       } else {
         // expense / income / payment / receipt
@@ -138,7 +145,7 @@ export function Dashboard() {
           createdAt: new Date().toISOString(),
         };
         setFeed((f) => [
-          { id: uuidv4(), kind: "transaction", data: transaction, added: false },
+          { id: uuidv4(), kind: "transaction", data: transaction, added: false, raw },
           ...f,
         ]);
       }
@@ -163,6 +170,7 @@ export function Dashboard() {
       setFeed((f) => [{ id: uuidv4(), kind: "error", message: userMessage }, ...f]);
     } finally {
       setIsLoading(false);
+      setLoadingStage("done");
     }
   };
 
@@ -262,17 +270,7 @@ export function Dashboard() {
             )}
 
             {isLoading && (
-              <div className="bg-surface border border-border rounded-xl p-4 shadow-sm animate-pulse">
-                <div className="flex justify-between items-center mb-3">
-                  <div className="h-6 w-20 bg-border rounded-full"></div>
-                  <div className="h-6 w-24 bg-border rounded"></div>
-                </div>
-                <div className="space-y-2 mb-3">
-                  <div className="h-4 bg-border rounded w-3/4"></div>
-                  <div className="h-4 bg-border rounded w-1/2"></div>
-                </div>
-                <div className="h-10 bg-border rounded-lg mt-4"></div>
-              </div>
+              <ThinkingConsole stage={loadingStage} />
             )}
 
             {feed.map((item) => {
@@ -325,6 +323,8 @@ export function Dashboard() {
                     ) : (
                       <ResultCard
                         result={{ kind: "transaction", data: item.data }}
+                        raw={item.raw}
+                        isFirst={index === feed.length - 1} // Index is reversed in display but feed mapping is consistent
                         onAddToLedger={() =>
                           handleAddTransaction(item.id, item.data)
                         }
