@@ -8,14 +8,6 @@ interface Env {
   APP_VERSION: string;
 }
 
-function requireEnv(key: string): string {
-  const val = import.meta.env[key] as string | undefined;
-  if (!val || val.trim() === "") {
-    throw new Error(`Missing required environment variable: ${key}`);
-  }
-  return val;
-}
-
 function optionalEnv(key: string): string | undefined {
   const val = import.meta.env[key] as string | undefined;
   return val && val.trim() !== "" ? val : undefined;
