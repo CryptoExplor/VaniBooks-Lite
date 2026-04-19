@@ -2,6 +2,7 @@ import { useState } from "react";
 import type { Transaction, Invoice } from "../types/transaction";
 import { formatPaise } from "../lib/format";
 import { callClaude, parseClaudeResponse } from "../services/claude";
+import { stringify } from "../lib/bigint";
 
 type ResultData =
   | { kind: "transaction"; data: Transaction }
@@ -30,7 +31,7 @@ export function ResultCard({ result, onAddToLedger }: ResultCardProps) {
     try {
       const raw = await callClaude({
         mode: "explain",
-        userMessage: `Explain this accounting entry in simple English for a small business owner (2-3 sentences max): ${JSON.stringify(result.data)}`,
+        userMessage: `Explain this accounting entry in simple English for a small business owner (2-3 sentences max): ${stringify(result.data)}`,
       });
       // The explanation prompt may return plain text or JSON — handle both
       let text = raw;

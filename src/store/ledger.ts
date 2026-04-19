@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import type { Transaction, Invoice } from "../types/transaction";
+import { replacer, reviver } from "../lib/bigint";
 
 interface LedgerState {
   transactions: Transaction[];
@@ -10,25 +11,7 @@ interface LedgerState {
   clearAll: () => void;
 }
 
-// BigInt is not JSON-serializable by default — custom replacer/reviver handle it
-function replacer(_key: string, value: unknown): unknown {
-  if (typeof value === "bigint") {
-    return { __bigint: value.toString() };
-  }
-  return value;
-}
 
-function reviver(_key: string, value: unknown): unknown {
-  if (
-    typeof value === "object" &&
-    value !== null &&
-    "__bigint" in value &&
-    typeof (value as Record<string, unknown>).__bigint === "string"
-  ) {
-    return BigInt((value as Record<string, string>).__bigint);
-  }
-  return value;
-}
 
 export const useLedger = create<LedgerState>()(
   persist(

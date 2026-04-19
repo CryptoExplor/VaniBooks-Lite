@@ -19,7 +19,13 @@ function useCountUp(target: bigint, duration = 800): bigint {
       const progress = Math.min(elapsed / duration, 1);
       // Ease out cubic
       const eased = 1 - Math.pow(1 - progress, 3);
-      setCurrent(BigInt(Math.round(targetNum * eased)));
+      
+      if (progress >= 1) {
+        setCurrent(target);
+      } else {
+        setCurrent(BigInt(Math.round(targetNum * eased)));
+      }
+
       if (progress < 1) {
         frameRef.current = requestAnimationFrame(tick);
       }

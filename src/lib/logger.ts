@@ -11,6 +11,8 @@ interface LogEntry {
   data?: unknown;
 }
 
+import { stringify } from "./bigint";
+
 function log(level: LogLevel, message: string, meta?: Omit<LogEntry, "level" | "message" | "timestamp">): void {
   const entry: LogEntry = {
     level,
@@ -19,7 +21,7 @@ function log(level: LogLevel, message: string, meta?: Omit<LogEntry, "level" | "
     ...meta,
   };
 
-  const output = JSON.stringify(entry);
+  const output = stringify(entry);
 
   if (level === "error") {
     console.error(output);
