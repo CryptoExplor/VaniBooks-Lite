@@ -84,7 +84,7 @@ export function ResultCard({ result, raw, isFirst, onAddToLedger }: ResultCardPr
 
       {showBrain && raw && (
         <div className="mb-4 bg-primary text-[10px] p-3 rounded-lg overflow-x-auto font-mono text-white/80 border-l-2 border-accent">
-          <p className="text-accent/60 mb-1 font-bold">RAW_CLAUDE_OUTPUT_PASE</p>
+          <p className="text-accent/60 mb-1 font-bold">RAW CLAUDE OUTPUT</p>
           <pre>{raw}</pre>
         </div>
       )}

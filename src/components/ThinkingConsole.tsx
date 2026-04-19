@@ -1,3 +1,5 @@
+import { useRef, useEffect } from "react";
+
 export type LoadingStage = "routing" | "calling" | "parsing" | "done";
 
 interface ThinkingConsoleProps {
@@ -12,6 +14,17 @@ const STAGE_CONFIG: Record<LoadingStage, { icon: string; text: string }> = {
 };
 
 export function ThinkingConsole({ stage }: ThinkingConsoleProps) {
+  const timestamps = useRef<Record<string, string>>({});
+  
+  useEffect(() => {
+    if (stage !== "done" && !timestamps.current[stage]) {
+      timestamps.current[stage] = new Date().toLocaleTimeString();
+    }
+    if (!timestamps.current.init) {
+      timestamps.current.init = new Date().toLocaleTimeString();
+    }
+  }, [stage]);
+
   if (stage === "done") return null;
 
   const current = STAGE_CONFIG[stage];
@@ -51,17 +64,17 @@ export function ThinkingConsole({ stage }: ThinkingConsoleProps) {
       {/* Visual terminal-style logs (Subtle) */}
       <div className="mt-4 font-mono text-[10px] text-primary/40 space-y-1">
         <div className="flex gap-2">
-          <span className="text-accent/40">[{new Date().toLocaleTimeString()}]</span>
+          <span className="text-accent/40">[{timestamps.current.init}]</span>
           <span>Pipeline initialized</span>
         </div>
         {["routing", "calling", "parsing"].map((s) => {
           const stages: LoadingStage[] = ["routing", "calling", "parsing", "done"];
           const isAtOrPassed = stages.indexOf(s as LoadingStage) <= stages.indexOf(stage);
-          if (!isAtOrPassed) return null;
+          if (!isAtOrPassed || !timestamps.current[s]) return null;
           
           return (
             <div key={s} className="flex gap-2">
-              <span className="text-accent/40">[{new Date().toLocaleTimeString()}]</span>
+              <span className="text-accent/40">[{timestamps.current[s]}]</span>
               <span>
                 {s === "routing" && "> detect_intent(input)"}
                 {s === "calling" && "> anthropic.messages.create(model='claude-opus-4-7')"}

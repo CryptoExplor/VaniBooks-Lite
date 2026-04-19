@@ -324,7 +324,7 @@ export function Dashboard() {
                       <ResultCard
                         result={{ kind: "transaction", data: item.data }}
                         raw={item.raw}
-                        isFirst={index === feed.length - 1} // Index is reversed in display but feed mapping is consistent
+                        isFirst={index === 0} // Newest item is at index 0 in prepended feed
                         onAddToLedger={() =>
                           handleAddTransaction(item.id, item.data)
                         }
