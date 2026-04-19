@@ -4,6 +4,7 @@ export type LoadingStage = "routing" | "calling" | "parsing" | "done";
 
 interface ThinkingConsoleProps {
   stage: LoadingStage;
+  streamingText?: string;
 }
 
 const STAGE_CONFIG: Record<LoadingStage, { icon: string; text: string }> = {
@@ -13,8 +14,9 @@ const STAGE_CONFIG: Record<LoadingStage, { icon: string; text: string }> = {
   done: { icon: "✅", text: "Entry ready" },
 };
 
-export function ThinkingConsole({ stage }: ThinkingConsoleProps) {
+export function ThinkingConsole({ stage, streamingText }: ThinkingConsoleProps) {
   const timestamps = useRef<Record<string, string>>({});
+  const scrollRef = useRef<HTMLDivElement>(null);
   
   useEffect(() => {
     if (stage !== "done" && !timestamps.current[stage]) {
@@ -24,6 +26,12 @@ export function ThinkingConsole({ stage }: ThinkingConsoleProps) {
       timestamps.current.init = new Date().toLocaleTimeString();
     }
   }, [stage]);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [streamingText]);
 
   if (stage === "done") return null;
 
@@ -40,7 +48,6 @@ export function ThinkingConsole({ stage }: ThinkingConsoleProps) {
           <div className="mt-2 flex gap-1">
             {(["routing", "calling", "parsing"] as const).map((s) => {
               const isActive = s === stage;
-              // Simple way to show progress: if we are at or past this stage
               const stages: LoadingStage[] = ["routing", "calling", "parsing", "done"];
               const isPassed = stages.indexOf(s) < stages.indexOf(stage);
               
@@ -61,7 +68,16 @@ export function ThinkingConsole({ stage }: ThinkingConsoleProps) {
         </div>
       </div>
       
-      {/* Visual terminal-style logs (Subtle) */}
+      {streamingText && (
+        <div className="mt-4 bg-primary text-[10px] p-3 rounded-lg border-l-2 border-accent/50 max-h-40 overflow-y-auto font-mono text-white/70" ref={scrollRef}>
+          <div className="flex items-center justify-between mb-2 pb-1 border-b border-white/10">
+            <span className="text-accent uppercase font-bold tracking-tighter">Live AI Brain Stream</span>
+            <span className="animate-pulse">●</span>
+          </div>
+          <pre className="whitespace-pre-wrap">{streamingText}</pre>
+        </div>
+      )}
+
       <div className="mt-4 font-mono text-[10px] text-primary/40 space-y-1">
         <div className="flex gap-2">
           <span className="text-accent/40">[{timestamps.current.init}]</span>

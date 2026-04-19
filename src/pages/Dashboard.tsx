@@ -29,18 +29,43 @@ type FeedItem =
   | { id: string; kind: "summary"; data: FinancialSummary }
   | { id: string; kind: "error"; message: string };
 
+const DEMO_SEQUENCE = [
+  "Ramesh ne 5000 rent diya cash mein",
+  "Create invoice for ABC Traders 10 shirts at 800 each",
+  "Is mahine ka profit kitna hai?",
+];
+
 export function Dashboard() {
   const [feed, setFeed] = useState<FeedItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingStage, setLoadingStage] = useState<LoadingStage>("done");
+  const [streamingText, setStreamingText] = useState("");
+  const [isDemoRunning, setIsDemoRunning] = useState(false);
   const [inputError, setInputError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"chat" | "ledger">("chat");
 
   const { transactions, invoices, addTransaction, addInvoice } = useLedger();
 
+  const runDemo = async () => {
+    if (isLoading || isDemoRunning) return;
+    setIsDemoRunning(true);
+    setActiveTab("chat");
+    
+    try {
+      for (const input of DEMO_SEQUENCE) {
+        await handleSubmit(input);
+        await new Promise(r => setTimeout(r, 2000));
+      }
+      setActiveTab("ledger");
+    } finally {
+      setIsDemoRunning(false);
+    }
+  };
+
   const handleSubmit = async (input: string) => {
     setInputError(null);
     setIsLoading(true);
+    setStreamingText("");
     setLoadingStage("routing");
 
     const mode = detectIntent(input);
@@ -68,9 +93,18 @@ export function Dashboard() {
           party: inv.clientName,
         }));
         const contextData = [...txEntries, ...invoiceEntries];
-        raw = await callClaude({ mode, userMessage: input, contextData });
+        raw = await callClaude({ 
+          mode, 
+          userMessage: input, 
+          contextData,
+          onChunk: (text) => setStreamingText(text)
+        });
       } else {
-        raw = await callClaude({ mode, userMessage: input });
+        raw = await callClaude({ 
+          mode, 
+          userMessage: input,
+          onChunk: (text) => setStreamingText(text)
+        });
       }
       
       setLoadingStage("parsing");
@@ -117,7 +151,6 @@ export function Dashboard() {
         setFeed((f) => [{ id: uuidv4(), kind: "invoice", data: invoice, added: false, raw }, ...f]);
 
       } else {
-        // expense / income / payment / receipt
         const parsed = parseClaudeResponse<RawExpenseOutput>(raw);
         if (!isValidExpenseOutput(parsed)) {
           throw new Error("VALIDATION_ERROR: Expense response missing required fields");
@@ -154,7 +187,6 @@ export function Dashboard() {
         err instanceof Error ? err.message : "An unexpected error occurred";
       logger.error("Processing error", { code: "PROCESSING_ERROR", data: { message } });
 
-      // User-friendly error messages
       let userMessage = "Something went wrong. Please try again.";
       if (message.includes("CLAUDE_API_ERROR")) {
         userMessage = "Could not reach Claude API. Check your API key and connection.";
@@ -171,6 +203,7 @@ export function Dashboard() {
     } finally {
       setIsLoading(false);
       setLoadingStage("done");
+      setStreamingText("");
     }
   };
 
@@ -241,27 +274,38 @@ export function Dashboard() {
         {activeTab === "chat" ? (
           <div className="p-4 space-y-3">
             {feed.length === 0 && (
-              <div className="text-center py-16 px-6">
+              <div className="text-center py-12 px-6">
                 <div className="text-5xl mb-4">🧾</div>
                 <h2 className="font-display font-semibold text-text text-lg mb-2">
                   Start with any transaction
                 </h2>
-                <p className="text-muted font-body text-sm mb-6">
+                <p className="text-muted font-body text-sm mb-8">
                   Type or speak in plain English or Hindi
                 </p>
-                <div className="space-y-2 text-left max-w-sm mx-auto">
+                
+                <button
+                  onClick={runDemo}
+                  disabled={isLoading || isDemoRunning}
+                  className="mb-10 bg-accent/5 border border-accent/20 text-accent font-bold px-6 py-3 rounded-xl hover:bg-accent/10 transition-all flex items-center gap-2 mx-auto disabled:opacity-50"
+                >
+                  <span className="text-xl">▶</span> {isDemoRunning ? "Running Demo..." : "Watch Demo"}
+                </button>
+
+                <div className="space-y-2 text-left max-w-sm mx-auto opacity-70">
+                  <p className="text-[10px] text-muted uppercase font-bold mb-2 text-center">Try these examples</p>
                   {[
-                    "Paid 5000 for office rent in cash",
-                    "Create invoice for Ramesh for 10 shirts at 500 each",
-                    "Received 25000 from client Priya via UPI",
-                    "What's my profit this month?",
+                    "Ramesh ne 5000 rent diya cash mein",
+                    "Create invoice for ABC Traders 10 units at ₹800",
+                    "Received 25000 from Priya via UPI",
+                    "Is mahine ka profit kitna hai?",
                   ].map((example) => (
                     <button
                       key={example}
                       onClick={() => handleSubmit(example)}
-                      disabled={isLoading}
-                      className="w-full text-left text-sm font-body text-muted bg-surface border border-border rounded-lg px-3 py-2 hover:border-accent hover:text-accent transition-colors disabled:opacity-50"
+                      disabled={isLoading || isDemoRunning}
+                      className="w-full text-left text-xs font-body text-muted bg-surface border border-border rounded-lg px-3 py-2.5 hover:border-accent hover:text-accent transition-all group disabled:opacity-50"
                     >
+                      <span className="text-accent opacity-0 group-hover:opacity-100 transition-opacity mr-1">👉</span>
                       "{example}"
                     </button>
                   ))}
@@ -270,7 +314,7 @@ export function Dashboard() {
             )}
 
             {isLoading && (
-              <ThinkingConsole stage={loadingStage} />
+              <ThinkingConsole stage={loadingStage} streamingText={streamingText} />
             )}
 
             {feed.map((item, index) => {
@@ -299,13 +343,13 @@ export function Dashboard() {
                     {!item.added && (
                       <button
                         onClick={() => handleAddInvoice(item.id, item.data)}
-                        className="w-full mt-2 bg-accent text-white text-sm font-body font-medium py-2 rounded-lg hover:opacity-90 transition-opacity"
+                        className="w-full mt-2 bg-accent text-white text-sm font-body font-medium py-2 rounded-lg hover:opacity-90 transition-opacity shadow-lg shadow-accent/10"
                       >
                         Save Invoice to Ledger
                       </button>
                     )}
                     {item.added && (
-                      <p className="text-center text-xs text-income font-body mt-2">
+                      <p className="text-center text-xs text-income font-body mt-2 font-bold">
                         ✓ Saved to ledger
                       </p>
                     )}
@@ -317,14 +361,14 @@ export function Dashboard() {
                 return (
                   <div key={item.id}>
                     {item.added ? (
-                      <div className="bg-income/5 border border-income/20 rounded-xl p-3 text-sm font-body text-income text-center">
+                      <div className="bg-income/5 border border-income/20 rounded-xl p-3 text-sm font-body text-income text-center font-bold">
                         ✓ Added to ledger
                       </div>
                     ) : (
                       <ResultCard
                         result={{ kind: "transaction", data: item.data }}
                         raw={item.raw}
-                        isFirst={index === 0} // Newest item is at index 0 in prepended feed
+                        isFirst={index === 0}
                         onAddToLedger={() =>
                           handleAddTransaction(item.id, item.data)
                         }
@@ -348,7 +392,7 @@ export function Dashboard() {
       <div className="flex-shrink-0">
         <InputBar
           onSubmit={handleSubmit}
-          isLoading={isLoading}
+          isLoading={isLoading || isDemoRunning}
           error={inputError}
         />
       </div>
