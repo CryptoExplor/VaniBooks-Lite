@@ -1,4 +1,4 @@
-import { useState, useRef, type KeyboardEvent } from "react";
+import { useState, useRef, useEffect, type KeyboardEvent } from "react";
 
 // Web Speech API — not fully typed in TS DOM lib, declare locally
 interface SpeechRecognitionResult {
@@ -35,10 +35,18 @@ export function InputBar({ onSubmit, isLoading, error }: InputBarProps) {
   const [value, setValue] = useState("");
   const [isListening, setIsListening] = useState(false);
   const recognitionRef = useRef<SpeechRecognitionInstance | null>(null);
+  const submittingRef = useRef(false);
+
+  useEffect(() => {
+    if (!isLoading) {
+      submittingRef.current = false;
+    }
+  }, [isLoading]);
 
   const handleSubmit = (text?: string) => {
     const input = (text ?? value).trim();
-    if (!input || isLoading) return;
+    if (!input || isLoading || submittingRef.current) return;
+    submittingRef.current = true;
     onSubmit(input);
     setValue("");
   };

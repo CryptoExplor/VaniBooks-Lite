@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { persist, createJSONStorage } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 import type { Transaction, Invoice } from "../types/transaction";
 
 interface LedgerState {
@@ -42,11 +42,11 @@ export const useLedger = create<LedgerState>()(
     }),
     {
       name: "vanibooks-ledger-v1",
-      storage: createJSONStorage(() => ({
+      storage: {
         getItem: (name: string) => {
           const raw = localStorage.getItem(name);
           if (!raw) return null;
-          return JSON.parse(raw, reviver) as string;
+          return JSON.parse(raw, reviver);
         },
         setItem: (name: string, value: unknown) => {
           localStorage.setItem(name, JSON.stringify(value, replacer));
@@ -54,7 +54,7 @@ export const useLedger = create<LedgerState>()(
         removeItem: (name: string) => {
           localStorage.removeItem(name);
         },
-      })),
+      },
     }
   )
 );

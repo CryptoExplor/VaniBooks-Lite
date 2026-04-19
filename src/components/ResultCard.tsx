@@ -29,7 +29,7 @@ export function ResultCard({ result, onAddToLedger }: ResultCardProps) {
     setLoadingExplain(true);
     try {
       const raw = await callClaude({
-        mode: "expense",
+        mode: "explain",
         userMessage: `Explain this accounting entry in simple English for a small business owner (2-3 sentences max): ${JSON.stringify(result.data)}`,
       });
       // The explanation prompt may return plain text or JSON — handle both

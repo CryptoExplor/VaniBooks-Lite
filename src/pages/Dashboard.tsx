@@ -48,13 +48,21 @@ export function Dashboard() {
 
       if (mode === "analysis") {
         // Pass existing transactions as context
-        const contextData = transactions.map((t) => ({
+        const txEntries = transactions.map((t) => ({
           type: t.type,
           amount: Number(t.amountPaise) / 100,
           category: t.category,
           date: t.date,
           party: t.party,
         }));
+        const invoiceEntries = invoices.map(inv => ({
+          type: "income",
+          amount: Number(inv.totalAmountPaise) / 100,
+          category: "sales",
+          date: inv.date,
+          party: inv.clientName,
+        }));
+        const contextData = [...txEntries, ...invoiceEntries];
         raw = await callClaude({ mode, userMessage: input, contextData });
       } else {
         raw = await callClaude({ mode, userMessage: input });
@@ -250,6 +258,20 @@ export function Dashboard() {
                     </button>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {isLoading && (
+              <div className="bg-surface border border-border rounded-xl p-4 shadow-sm animate-pulse">
+                <div className="flex justify-between items-center mb-3">
+                  <div className="h-6 w-20 bg-border rounded-full"></div>
+                  <div className="h-6 w-24 bg-border rounded"></div>
+                </div>
+                <div className="space-y-2 mb-3">
+                  <div className="h-4 bg-border rounded w-3/4"></div>
+                  <div className="h-4 bg-border rounded w-1/2"></div>
+                </div>
+                <div className="h-10 bg-border rounded-lg mt-4"></div>
               </div>
             )}
 

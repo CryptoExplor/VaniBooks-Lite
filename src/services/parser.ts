@@ -1,7 +1,7 @@
 // Detect which Claude mode to use BEFORE API call
 // Client-side keyword routing — no AI needed for intent detection
 
-export type IntentMode = "expense" | "invoice" | "analysis";
+export type IntentMode = "expense" | "invoice" | "analysis" | "explain";
 
 const INVOICE_KEYWORDS = [
   "invoice",
@@ -29,6 +29,14 @@ const ANALYSIS_KEYWORDS = [
   "total expense",
   "net",
   "earnings",
+  "munafa",
+  "nuksaan",
+  "kharch",
+  "aay",
+  "bachat",
+  "total milaya",
+  "hisaab",
+  "mahine ka",
 ];
 
 export function detectIntent(input: string): IntentMode {

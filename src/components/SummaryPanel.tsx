@@ -12,7 +12,7 @@ function useCountUp(target: bigint, duration = 800): bigint {
 
   useEffect(() => {
     const start = performance.now();
-    const targetNum = Number(target);
+    const targetNum = Number(target / 100n) * 100;
 
     const tick = (now: number) => {
       const elapsed = now - start;
