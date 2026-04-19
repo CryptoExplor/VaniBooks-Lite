@@ -6,7 +6,7 @@ import type { IntentMode } from "./parser";
 import { logger } from "../lib/logger";
 import { v4 as uuidv4 } from "uuid";
 
-const CLAUDE_MODEL = "claude-opus-4-7-20250514";
+const CLAUDE_MODEL = "claude-opus-4-7";
 const API_URL = "/api/claude";
 
 function getSystemPrompt(mode: IntentMode): string {
@@ -21,9 +21,6 @@ export interface ClaudeCallOptions {
   userMessage: string;
   contextData?: object; // for analysis mode: pass transaction array
 }
-
-// [RISK] API key exposed in client. For hackathon/MVP only.
-  // Production: proxy through /api/claude backend route.
 export async function callClaude(opts: ClaudeCallOptions): Promise<string> {
   const { mode, userMessage, contextData } = opts;
   const traceId = uuidv4();

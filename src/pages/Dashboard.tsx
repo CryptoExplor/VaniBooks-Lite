@@ -155,8 +155,8 @@ export function Dashboard() {
         userMessage = "Claude returned an unexpected response. Please rephrase and try again.";
       } else if (message.includes("VALIDATION_ERROR")) {
         userMessage = "The response was incomplete. Please try again with more detail.";
-      } else if (message.includes("VITE_ANTHROPIC_API_KEY")) {
-        userMessage = "API key not configured. Add VITE_ANTHROPIC_API_KEY to your .env file.";
+      } else if (message.includes("ANTHROPIC_API_KEY")) {
+        userMessage = "API key not configured. Add ANTHROPIC_API_KEY to your .env file.";
       }
 
       setInputError(userMessage);

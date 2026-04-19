@@ -15,7 +15,7 @@ AI-first accounting agent for Indian MSMEs. Type or speak a transaction in plain
 ```bash
 npm install
 cp .env.example .env
-# Add VITE_ANTHROPIC_API_KEY to .env
+# Add ANTHROPIC_API_KEY to .env
 npm run dev
 ```
 
@@ -23,7 +23,7 @@ npm run dev
 
 | Variable | Required | Description |
 |---|---|---|
-| `VITE_ANTHROPIC_API_KEY` | Yes | Anthropic API key |
+| `ANTHROPIC_API_KEY` | Yes | Anthropic API key (Server-side) |
 | `VITE_SUPABASE_URL` | No | Supabase project URL (falls back to localStorage) |
 | `VITE_SUPABASE_ANON_KEY` | No | Supabase anon key |
 | `VITE_APP_ENV` | No | `development` or `production` |
@@ -41,7 +41,7 @@ npm run lint       # ESLint
 
 ```bash
 npm i -g vercel && vercel
-vercel env add VITE_ANTHROPIC_API_KEY
+vercel env add ANTHROPIC_API_KEY
 ```
 
 `vercel.json` SPA rewrite rule is included.
@@ -60,7 +60,7 @@ All financial values are stored as integer **paise** (`BigInt`) — never floats
 
 ## Notes
 
-- API key is sent from the browser (client-side). Acceptable for hackathon/MVP. For production, proxy through a backend route.
+- API key is managed securely via the Vercel Serverless proxy backend (`/api/claude`).
 - Voice input requires Chrome (Web Speech API).
 - Data persists in `localStorage` under key `vanibooks-ledger-v1`.
 
