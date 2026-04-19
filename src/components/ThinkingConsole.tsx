@@ -1,5 +1,3 @@
-import React from "react";
-
 export type LoadingStage = "routing" | "calling" | "parsing" | "done";
 
 interface ThinkingConsoleProps {
@@ -56,7 +54,7 @@ export function ThinkingConsole({ stage }: ThinkingConsoleProps) {
           <span className="text-accent/40">[{new Date().toLocaleTimeString()}]</span>
           <span>Pipeline initialized</span>
         </div>
-        {["routing", "calling", "parsing"].map((s, idx) => {
+        {["routing", "calling", "parsing"].map((s) => {
           const stages: LoadingStage[] = ["routing", "calling", "parsing", "done"];
           const isAtOrPassed = stages.indexOf(s as LoadingStage) <= stages.indexOf(stage);
           if (!isAtOrPassed) return null;

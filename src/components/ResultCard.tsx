@@ -51,13 +51,11 @@ export function ResultCard({ result, raw, isFirst, onAddToLedger }: ResultCardPr
     }
   };
 
-  const isTransaction = result.kind === "transaction";
-  const data = result.data;
-  const style = isTransaction 
-    ? (TYPE_STYLES[data.type] ?? TYPE_STYLES["expense"])
+  const style = result.kind === "transaction" 
+    ? (TYPE_STYLES[result.data.type] ?? TYPE_STYLES["expense"])
     : TYPE_STYLES["invoice"];
 
-  const showInsight = isTransaction && (!data.gstApplicable || data.confidence < 0.75);
+  const showInsight = result.kind === "transaction" && (!result.data.gstApplicable || result.data.confidence < 0.75);
 
   return (
     <div className="bg-surface border border-border rounded-xl p-4 shadow-sm animate-slide-up">
@@ -80,7 +78,7 @@ export function ResultCard({ result, raw, isFirst, onAddToLedger }: ResultCardPr
           </button>
         </div>
         <span className="font-mono text-lg font-bold text-text">
-          {formatPaise(isTransaction ? data.amountPaise : data.totalAmountPaise)}
+          {formatPaise(result.kind === "transaction" ? result.data.amountPaise : result.data.totalAmountPaise)}
         </span>
       </div>
 
@@ -91,54 +89,54 @@ export function ResultCard({ result, raw, isFirst, onAddToLedger }: ResultCardPr
         </div>
       )}
 
-      {isTransaction ? (
+      {result.kind === "transaction" ? (
         <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-sm font-body mb-3">
           <div>
             <span className="text-[10px] text-muted uppercase">Category</span>
-            <p className="text-text capitalize leading-tight">{data.category}</p>
+            <p className="text-text capitalize leading-tight">{result.data.category}</p>
           </div>
           <div>
             <span className="text-[10px] text-muted uppercase">Party</span>
-            <p className="text-text leading-tight">{data.party}</p>
+            <p className="text-text leading-tight">{result.data.party}</p>
           </div>
           <div>
             <span className="text-[10px] text-muted uppercase">Date</span>
-            <p className="text-text leading-tight">{data.date}</p>
+            <p className="text-text leading-tight">{result.data.date}</p>
           </div>
           <div>
             <span className="text-[10px] text-muted uppercase">Mode</span>
-            <p className="text-text capitalize leading-tight">{data.paymentMode}</p>
+            <p className="text-text capitalize leading-tight">{result.data.paymentMode}</p>
           </div>
         </div>
       ) : (
         <div className="space-y-1 mb-3 font-body text-sm">
-          <p className="text-text"><span className="text-muted">Client:</span> {data.clientName}</p>
+          <p className="text-text"><span className="text-muted">Client:</span> {result.data.clientName}</p>
           <p className="text-muted text-xs">
-            {data.items.length} item{data.items.length !== 1 ? "s" : ""} · {data.date}
+            {result.data.items.length} item{result.data.items.length !== 1 ? "s" : ""} · {result.data.date}
           </p>
         </div>
       )}
 
-      {isTransaction && data.description && (
+      {result.kind === "transaction" && result.data.description && (
         <p className="text-xs text-muted font-body mb-3 italic leading-relaxed">
-          "{data.description}"
+          "{result.data.description}"
         </p>
       )}
 
       <div className="flex flex-wrap gap-2 mb-4">
-        {isTransaction && data.gstApplicable && (
+        {result.kind === "transaction" && result.data.gstApplicable && (
           <span className="flex items-center gap-1.5 text-[10px] font-bold bg-invoice/5 text-invoice px-2 py-1 rounded-md border border-invoice/10">
             <span className="w-1.5 h-1.5 bg-invoice rounded-full animate-pulse" />
-            SMART GST ({data.gstRatePct}%) = {formatPaise(data.gstAmountPaise)}
+            SMART GST ({result.data.gstRatePct}%) = {formatPaise(result.data.gstAmountPaise)}
           </span>
         )}
-        {!isTransaction && (
+        {result.kind === "invoice" && (
           <span className="flex items-center gap-1.5 text-[10px] font-bold bg-invoice/5 text-invoice px-2 py-1 rounded-md border border-invoice/10">
             <span className="w-1.5 h-1.5 bg-invoice rounded-full animate-pulse" />
-            GST COMPLIANT ({data.gstRatePct}%)
+            GST COMPLIANT ({result.data.gstRatePct}%)
           </span>
         )}
-        {showInsight && (
+        {showInsight && result.kind === "transaction" && (
           <div className="w-full mt-1 p-2 bg-accent/5 border border-accent/10 rounded-lg">
             <div className="flex items-center gap-1.5 text-[10px] font-bold text-accent mb-1">
               <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -147,7 +145,7 @@ export function ResultCard({ result, raw, isFirst, onAddToLedger }: ResultCardPr
               AI ACCOUNTANT INSIGHT
             </div>
             <p className="text-[11px] text-text font-body leading-relaxed">
-              {!data.gstApplicable 
+              {!result.data.gstApplicable 
                 ? "No GST applied as this entry is typically exempt or personal." 
                 : "Confidence is low. Please verify party and amount before saving."}
             </p>

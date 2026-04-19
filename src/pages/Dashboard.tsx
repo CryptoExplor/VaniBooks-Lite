@@ -24,7 +24,7 @@ import {
 } from "../lib/validate";
 
 type FeedItem =
-  | { id: string; kind: "transaction"; data: Transaction; added: boolean }
+  | { id: string; kind: "transaction"; data: Transaction; added: boolean; raw?: string }
   | { id: string; kind: "invoice"; data: Invoice; added: boolean; raw?: string }
   | { id: string; kind: "summary"; data: FinancialSummary }
   | { id: string; kind: "error"; message: string };
@@ -273,7 +273,7 @@ export function Dashboard() {
               <ThinkingConsole stage={loadingStage} />
             )}
 
-            {feed.map((item) => {
+            {feed.map((item, index) => {
               if (item.kind === "error") {
                 return (
                   <div
