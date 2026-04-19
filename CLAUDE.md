@@ -25,7 +25,7 @@ Claude converts it into structured financial data, generates invoices, and answe
 | Language      | TypeScript (strict mode)        |
 | Styling       | TailwindCSS v3                  |
 | State         | Zustand                         |
-| AI Engine     | Anthropic Claude API (claude-opus-4-7-20250514) |
+| AI Engine     | Anthropic Claude API (claude-opus-4-7) |
 | DB / Persist  | Supabase (Postgres) OR localStorage (MVP fallback) |
 | Deploy        | Vercel                          |
 | Voice Input   | Web Speech API (browser native) |
@@ -95,7 +95,7 @@ Create `.env.example` with these keys. NEVER commit actual values.
 
 ```env
 # Anthropic
-VITE_ANTHROPIC_API_KEY=sk-ant-xxxx
+ANTHROPIC_API_KEY=sk-ant-xxxx
 
 # Supabase (optional — falls back to localStorage if not set)
 VITE_SUPABASE_URL=https://xxxx.supabase.co
@@ -348,7 +348,7 @@ import { ANALYSIS_SYSTEM_PROMPT } from "../prompts/analysis";
 import type { IntentMode } from "./parser";
 import type { Transaction, Invoice, FinancialSummary } from "../types/transaction";
 
-const CLAUDE_MODEL = "claude-opus-4-7-20250514";
+const CLAUDE_MODEL = "claude-opus-4-7";
 const API_URL = "https://api.anthropic.com/v1/messages";
 
 function getSystemPrompt(mode: IntentMode): string {
@@ -376,7 +376,7 @@ export async function callClaude(opts: ClaudeCallOptions): Promise<string> {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "x-api-key": import.meta.env.VITE_ANTHROPIC_API_KEY,
+      "x-api-key": process.env.ANTHROPIC_API_KEY,
       "anthropic-version": "2023-06-01",
     },
     body: JSON.stringify({
@@ -719,7 +719,7 @@ Phase 6 — Polish
 ## 17. Critical Rules — Never Violate
 
 - **Money**: Never `float` for INR amounts in storage or calculation. Use `BigInt` paise. Display-only formatting may use `number`.
-- **API Key**: `VITE_ANTHROPIC_API_KEY` in `.env` only. Never log it. Never hardcode.
+- **API Key**: `ANTHROPIC_API_KEY` in `.env` only (server-side). Never log it. Never hardcode.
 - **JSON from Claude**: Always wrap `JSON.parse()` in try/catch. Show user-friendly error on failure.
 - **Voice**: Gracefully degrade if browser doesn't support `SpeechRecognition`. Never crash.
 - **Offline**: If Claude API fails, show error card, do NOT add incomplete entry to ledger.

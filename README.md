@@ -7,7 +7,7 @@ AI-first accounting agent for Indian MSMEs. Type or speak a transaction in plain
 - React 18 + Vite 5 + TypeScript (strict)
 - TailwindCSS v3
 - Zustand (persisted to localStorage)
-- Anthropic Claude API (`claude-opus-4-7-20250514`)
+- Anthropic Claude API (`claude-opus-4-7`)
 - Web Speech API for voice input
 
 ## Setup
